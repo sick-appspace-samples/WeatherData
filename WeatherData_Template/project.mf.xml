@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <manifest>
-    <application name="WeatherData">
-        <crown name="WeatherData">
+    <application name="WeatherData_Template">
+        <crown name="WeatherData_Template">
             <desc>user script</desc>
         </crown>
-        <meta key="author">AppSpace Sample</meta>
-        <meta key="version">2.5.0</meta>
+        <meta key="author">Gabriel Musset</meta>
+        <meta key="version">1.0</meta>
         <meta key="priority">low</meta>
         <meta key="copy-protected">false</meta>
         <meta key="read-protected">false</meta>
-        <entry default="weatherdata.lua" path="scripts"/>
+        <entry default="data.lua" path="scripts"/>
     </application>
 </manifest>
