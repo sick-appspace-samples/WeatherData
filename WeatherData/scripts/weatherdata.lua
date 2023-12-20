@@ -13,17 +13,14 @@ local GRID_COLOR = {230, 230, 230}
 local DARK_BLUE = {50, 50, 150, 255}
 local DARK_RED = {150, 0, 0, 255}
 local PURPLE = {150, 0, 150}
-local TRANSPARENT = {0, 0, 0, 0}
 
 local TEXT_COLOR = {0, 0, 0}
 local LEGEND_SIZE = 4
 
 local function getTextDeco(rgba, size, x, y)
   rgba[4] = rgba[4] or 255
-  local deco = View.TextDecoration.create()
-  deco:setColor(rgba[1], rgba[2], rgba[3], rgba[4])
-  deco:setSize(size)
-  deco:setPosition(x, y)
+  local deco = View.TextDecoration.create():setSize(size)
+  deco:setColor(rgba[1], rgba[2], rgba[3], rgba[4]):setPosition(x, y)
   return deco
 end
 
@@ -36,8 +33,7 @@ local function getShapeDeco(rgbaVector, lineWidth, pointSize)
   local deco = View.ShapeDecoration.create()
   deco:setLineColor(rgbaVector[1], rgbaVector[2], rgbaVector[3], rgbaVector[4]) -- grey
   deco:setFillColor(rgbaVector[1], rgbaVector[2], rgbaVector[3], rgbaVector[4])
-  deco:setLineWidth(lineWidth)
-  deco:setPointSize(pointSize)
+  deco:setLineWidth(lineWidth):setPointSize(pointSize)
 
   return deco
 end
@@ -46,24 +42,22 @@ local function getGraphDeco(rgba, size, isOverlay, graphType)
   size = size or 0
   graphType = graphType or 'LINE'
   isOverlay = isOverlay or false
-  local deco = View.GraphDecoration.create()
-  deco:setGraphColor(table.unpack(rgba))
-  deco:setXBounds(table.unpack(xRange))
-  deco:setYBounds(table.unpack(yRange))
-  deco:setAxisColor(table.unpack(AXIS_COLOR))
-  deco:setGridColor(table.unpack(GRID_COLOR))
-  deco:setLabelColor(table.unpack(TEXT_COLOR))
-  deco:setDrawSize(size)
-  deco:setAxisVisible(not isOverlay)
-  deco:setBackgroundVisible(not isOverlay)
-  deco:setGridVisible(not isOverlay)
-  deco:setTicksVisible(not isOverlay)
-  deco:setLabelsVisible(not isOverlay)
-  deco:setAspectRatio('EQUAL')
-  deco:setGraphType(graphType)
-  deco:setDynamicSizing(true)
-  deco:setAxisWidth(2)
+  local deco = View.GraphDecoration.create():setDrawSize(size)
+  deco:setGraphColor(table.unpack(rgba)):setGraphType(graphType)
   if not isOverlay then
+    deco:setXBounds(table.unpack(xRange))
+    deco:setYBounds(table.unpack(yRange))
+    deco:setAxisColor(table.unpack(AXIS_COLOR))
+    deco:setGridColor(table.unpack(GRID_COLOR))
+    deco:setLabelColor(table.unpack(TEXT_COLOR))
+    deco:setAxisVisible(not isOverlay)
+    deco:setBackgroundVisible(not isOverlay)
+    deco:setGridVisible(not isOverlay)
+    deco:setTicksVisible(not isOverlay)
+    deco:setLabelsVisible(not isOverlay)
+    deco:setAspectRatio('EQUAL')
+    deco:setDynamicSizing(true)
+    deco:setAxisWidth(2)
     deco:setLabels('Days', '°C')
     deco:setTitle('Mean Temperature of Waldkirch in 2017')
     deco:setTitleSize(6)
@@ -95,24 +89,23 @@ local function main()
   viewer:clear()
 
   --draw raw temperature data
-  viewer:addProfile(temperatures, getGraphDeco(RAW_DATA_COLOR), 'profile')
+  viewer:addProfile(temperatures, getGraphDeco(RAW_DATA_COLOR, 0), 'mainProfile')
 
   --draw smooth temperature data
-  viewer:addProfile(temperatures:gauss(31), getGraphDeco(SMOOTH_DATA_COLOR, 0, true))
+  viewer:addProfile(temperatures:gauss(31), getGraphDeco(SMOOTH_DATA_COLOR, 0, true), 'overlayProfile1', 'mainProfile')
 
   --draw mean temperature
   viewer:addProfile(
-    Profile.createFromVector(
-      {meanTemp, meanTemp},
-      {temperatures:getCoordinate(0), temperatures:getCoordinate(temperatures:getSize() - 1)})
-    , getGraphDeco(PURPLE, nil, true))
+     Profile.createFromVector(
+       {meanTemp, meanTemp},
+       {temperatures:getCoordinate(0), temperatures:getCoordinate(temperatures:getSize() - 1)})
+     , getGraphDeco(PURPLE, 0, true), 'overlayProfile2', 'mainProfile')
 
   --draw max temperature
-  viewer:addShape(Point.create(temperatures:getCoordinate(indexMax), maxTemp), getShapeDeco(DARK_RED, 4), '', 'profile')
+  viewer:addShape(Point.create(temperatures:getCoordinate(indexMax), maxTemp), getShapeDeco(DARK_RED, 4), 'min', 'mainProfile')
 
   --draw min temperature
-  viewer:addShape(Point.create(temperatures:getCoordinate(indexMin), minTemp), getShapeDeco(DARK_BLUE, 4),'', 'profile')
-  viewer:addProfile(temperatures, getGraphDeco(TRANSPARENT, 0, true))
+  viewer:addShape(Point.create(temperatures:getCoordinate(indexMin), minTemp), getShapeDeco(DARK_BLUE, 4), 'max', 'mainProfile')
 
   --draw legend
   addLegend(viewer, "Temperature", getShapeDeco(RAW_DATA_COLOR), days - 110, yRange[2] - 3)
